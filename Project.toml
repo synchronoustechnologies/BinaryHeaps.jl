@@ -1,0 +1,7 @@
+name = "BinaryHeaps"
+uuid = "51b50567-1693-47b2-ab5c-82b5392adcb4"
+version = "0.1.0"
+
+[deps]
+TypeParams = "aef91bff-20f9-45ec-bc27-6bc16f693c59"
+UnPack = "3a884ed6-31ef-47d7-9d2a-63182c4928ed"
