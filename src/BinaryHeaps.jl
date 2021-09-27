@@ -11,8 +11,7 @@ using Base.Order
 
 include("walk.jl")
 include("binary_heaps.jl")
-include("Permutations.jl")
-include("Tracked.jl")
+include("permutations.jl")
 include("reduction.jl")
 
 include("MutableBinaryHeapsWithReduction.jl")

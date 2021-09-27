@@ -1,64 +1,68 @@
-@typeparams struct MutableBinaryHeapWithReduction{T}
-    v::{<:AbstractVector{T}}
-    r::{<:AbstractVector}
-    o2h::{<:AbstractVector{Int}}
-    h2o::{<:AbstractVector{Int}}
+@typeparams struct MutableBinaryHeapWithReduction
+    v::{}
+    r::{}
+    k2i::{}
+    i2k::{}
     order::{<:Ordering}
     reduce::{}
 end
 
 function MutableBinaryHeapWithReduction(
-    v::AbstractVector,
-    r::AbstractVector;
+    v,
+    r = Vector{eltype(v)}(undef, length(v)),
+    i2k = nothing,
+    k2i = nothing;
     reduce,
     lt = isless,
     by = identity,
     rev::Bool = false,
     order::Ordering = Forward
 )
-    @assert length(r) >= length(v)
-    n = length(v)
-    o2h = collect(1:n)
-    h2o = collect(1:n)
+    if isnothing(i2k)
+        @assert isnothing(k2i)
+        n = length(v)
+        i2k = collect(1:n)
+        k2i = collect(1:n)
+    elseif isnothing(k2i)
+        k2i = Dict(k=>i for (i,k) in enumerate(i2k))
+    end
     order = ord(lt, by, rev, order)
-
     heapify!(
-        Tracked!(v,o2h,h2o),
-        By(((oi,vi),) -> vi, order)
+        PermutationTracker(v,k2i,i2k),
+        By(((k,vk),) -> vk, order)
     )
     reduce_subtrees!(v,r,reduce)
-
     return MutableBinaryHeapWithReduction(
-        v, r, o2h, h2o,
+        v, r, k2i, i2k,
         order, reduce
     )
 end
 
-function update!(h::MutableBinaryHeapWithReduction, oi, vi)
-    @unpack v,r,o2h,h2o,order,reduce = h
+function update!(h::MutableBinaryHeapWithReduction, k, vk)
+    @unpack v,r,k2i,i2k,order,reduce = h
     n = length(v)
-    if n == 0; return oi; end
+    if n == 0; return k; end
 
-    hi = h.o2h[oi]
-    tracked_v = Tracked!(v, o2h, h2o)
-    tracked_vi = (oi,vi)
-    tracked_order = By(((oi,vi),) -> vi, order)
+    i = k2i[k]
+    tv = PermutationTracker(v, k2i, i2k)
+    tvk = (k,vk)
+    torder = By(((k,vk),) -> vk, order)
 
-    if lt(order, vi, v[hi])
-        hi = walk(
+    if lt(order, vk, v[i])
+        i = walk(
             piggyback(
-                Bubbler!(tracked_v, tracked_vi, tracked_order, Val(:up)),
+                Bubbler!(tv, tvk, torder, Val(:up)),
                 Reducer!(v,r,reduce)
             ),
-            n, hi, Val(:up)
+            n, i, Val(:up)
         )
     else
-        hi = walk(
-            Bubbler!(tracked_v, tracked_vi, tracked_order, Val(:down)),
-            n, hi, Val(:down)
+        i = walk(
+            Bubbler!(tv, tvk, torder, Val(:down)),
+            n, i, Val(:down)
         )
     end
-    tracked_v[hi] = tracked_vi
-    walk(Reducer!(v,r,reduce),n,hi, Val(:up))
-    return hi
+    tv[i] = tvk
+    walk(Reducer!(v,r,reduce),n,i, Val(:up))
+    return i
 end

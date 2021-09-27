@@ -7,7 +7,7 @@ using BinaryHeaps:
     walk,
     heapparent, heapleft, heapright,
     heapify!, bubble!,
-    Tracked!,
+    PermutationTracker,
     reduce_subtrees!, Reducer!
 
 function isheap(v,order)
@@ -63,8 +63,7 @@ end
 
 include("walk.jl")
 include("binary_heaps.jl")
-include("Permutations.jl")
-include("Tracked.jl")
+include("permutations.jl")
 include("reduction.jl")
 
 include("MutableBinaryHeapsWithReduction.jl")
