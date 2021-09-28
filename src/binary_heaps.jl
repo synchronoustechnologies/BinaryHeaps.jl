@@ -31,39 +31,39 @@ function bubble!((v,n), vi, i, order, dir)
 end
 
 function Bubbler!(v, vi, order, ::Val{:up})
-    UpBubblerF(i, ::Val{0}, _) = Val(:break)
-    function UpBubblerF(i, ::Val{1}, _)
+    function UpBubblerF(i,np,nc)
+        if np == 0; return :break; end
         vp = v[heapparent(i)]
         if lt(order, vi, vp)
             v[i] = vp
-            return Val(:continue)
+            return :continue
         end
-        return Val(:break)
+        return :break
     end
     return UpBubblerF
 end
 
 function Bubbler!(v, vi, order, ::Val{:down})
-    DownBubblerF(i, _, ::Val{0}) = Val(:break)
-    function DownBubblerF(i, _, ::Val{1})
-        if lt(order, v[heapleft(i)], vi)
-            v[i] = v[heapleft(i)]
-            return Val(:continue)
+    function DownBubblerF(i,np,nc)
+        if nc == 0; return :break; end
+        if nc == 1
+            if lt(order, v[heapleft(i)], vi)
+                v[i] = v[heapleft(i)]
+                return :continue
+            end
+            return :break
         end
-        return Val(:break)
-    end
-    function DownBubblerF(i, _, ::Val{2})
         vl,vr = v[heapleft(i)], v[heapright(i)]
         d,vj = if lt(order, vl, vr)
-            Val(:left), vl
+            :left, vl
         else
-            Val(:right), vr
+            :right, vr
         end
         if lt(order, vj, vi)
             v[i] = vj
             return d
         end
-        return Val(:break)
+        return :break
     end
     return DownBubblerF
 end

@@ -23,8 +23,11 @@ function reduce_subtrees!(v,r,reduce)
 end
 
 function Reducer!(v,r,reduce)
-    ReducerF(i, _, ::Val{0}) = (r[i] = reduce(v[i]); return Val(:continue))
-    ReducerF(i, _, ::Val{1}) = (r[i] = reduce(v[i], r[heapleft(i)]); return Val(:continue))
-    ReducerF(i, _, ::Val{2}) = (r[i] = reduce(v[i], r[heapleft(i)], r[heapright(i)]); return Val(:continue))
+    function ReducerF(i, _, nc)
+        if nc == 0; r[i] = reduce(v[i]); end
+        if nc == 1; r[i] = reduce(v[i], r[heapleft(i)]); end
+        if nc == 2; r[i] = reduce(v[i], r[heapleft(i)], r[heapright(i)]); end
+        return :continue
+    end
     return ReducerF
 end
